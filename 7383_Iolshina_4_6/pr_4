@@ -1,0 +1,81 @@
+import numpy as np
+from keras.layers import Dense
+from keras.models import Sequential
+
+
+def relu(x):
+    return np.maximum(x, 0.)
+
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
+def logic_operation(a, b, c):
+    return (a and not b) or (c != b)
+
+def tensor_result(dataset, weights):
+    result = dataset.copy()
+    layers = [relu for i in range(len(weights) - 1)]
+    layers.append(sigmoid)
+    for i in range(len(weights)):
+        result = layers[i](np.dot(result, weights[i][0]) + weights[i][1])
+    return result
+
+
+def each_element_of_tensor_result(dataset, weights):
+    result = dataset.copy()
+    length_dataset = len(result)
+    length_weights = len(weights)
+    layers = [relu for _ in range(length_weights - 1)]
+    layers.append(sigmoid)
+    for weight in range(length_weights):
+        len_current_weight = len(weights[weight][1])
+        step_result = np.zeros((length_dataset, len_current_weight))
+        for i in range(length_dataset):
+            for j in range(len_current_weight):
+                sum = 0
+                for k in range(len(result[i])):
+                    sum += result[i][k] * weights[weight][0][k][j]
+                step_result[i][j] = layers[weight](sum + weights[weight][1][j])
+        result = step_result
+    return result
+
+
+def prints(model, dataset):
+    weights = [layer.get_weights() for layer in model.layers]
+    tensor_res = tensor_result(dataset, weights)
+    each_el = each_element_of_tensor_result(dataset, weights)
+    model_res = model.predict(dataset)
+    print("Результат тензорного вычисления:")
+    print(tensor_res)
+    print("Результат вычисления каждого элемента")
+    print(each_el)
+    print("Результат прогона через обученную модель:")
+    print(model_res)
+
+
+def main():
+    train_data = np.array([[0, 0, 0],
+                    [0, 0, 1],
+                    [0, 1, 0],
+                    [0, 1, 1],
+                    [1, 0, 0],
+                    [1, 0, 1],
+                    [1, 1, 0],
+                    [1, 1, 1]])
+    validation_data = np.array([int(logic_operation(x[0], x[1], x[2])) for x in train_data])
+
+    model = Sequential()
+    model.add(Dense(16, activation='relu', input_dim=3))
+    model.add(Dense(16, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    prints(model, train_data)
+    model.fit(train_data, validation_data, epochs=200, batch_size=1)
+    prints(model, train_data)
+
+
+if __name__ == '__main__':
+    main()
