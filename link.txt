@@ -1,0 +1,3 @@
+Ссылка на google диск, на котором содержатся файлы с исходным и обработанным датасетами, а также сохраненная наилучшая модель нейронной сети. 
+
+https://drive.google.com/drive/folders/1O7n1t83RB8IhHCV1pPIs3WZKYa9_N8j4?usp=sharing
